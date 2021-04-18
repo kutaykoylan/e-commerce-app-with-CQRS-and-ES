@@ -6,7 +6,7 @@ import au.com.dius.pact.core.model.messaging.MessagePact;
 import com.example.stockservice.entity.Stock;
 import com.example.stockservice.event.handler.ReserveStockEventHandler;
 import com.example.stockservice.event.model.received.ReserveStockEvent;
-import org.junit.Rule;
+
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

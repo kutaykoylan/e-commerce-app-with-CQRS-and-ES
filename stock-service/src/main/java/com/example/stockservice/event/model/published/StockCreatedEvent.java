@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Value;
 
+@Data
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
