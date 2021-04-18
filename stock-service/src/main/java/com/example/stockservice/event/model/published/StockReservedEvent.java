@@ -10,18 +10,20 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Value;
 
+import javax.validation.constraints.NotNull;
+
+@Data
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class StockReservedEvent extends PublishedEvent {
 
+    @NotNull
     private String orderId;
 
+    @NotNull
     private long numberOfItemsSold;
 
     private EventType eventType = EventType.EVENT;
 
-    public void sadsa(){
-        ReserveStockEvent.builder();
-    }
 }

@@ -1,10 +1,12 @@
 package com.example.stockservice;
 
+import au.com.dius.pact.core.model.annotations.PactFolder;
 import au.com.dius.pact.core.model.messaging.Message;
 import au.com.dius.pact.core.model.messaging.MessagePact;
 import com.example.stockservice.entity.Stock;
 import com.example.stockservice.event.handler.ReserveStockEventHandler;
 import com.example.stockservice.event.model.received.ReserveStockEvent;
+import org.junit.Rule;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,11 +25,15 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-
+@PactFolder("../pact-message-consumer/target/pacts")
 @ExtendWith(PactConsumerTestExt.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @PactTestFor(providerName = "pactflow-example-provider-java-kafka", providerType = ProviderType.ASYNCH)
 public class PactTest {
+
+
+    @Autowired
+    private MessageConsumer messageConsumer;
 
     @Autowired
     ReserveStockEventHandler listener;
@@ -35,31 +41,42 @@ public class PactTest {
     @Pact(consumer = "pactflow-example-consumer-java-kafka")
     MessagePact createPact(MessagePactBuilder builder) {
         PactDslJsonBody body = new PactDslJsonBody();
-        body.stringType("name", "product name");
-        body.stringType("type", "product series");
-        body.stringType("id", "5cc989d0-d800-434c-b4bb-b1268499e850");
-        body.stringMatcher("version", "v[a-zA-z0-9]+", "v1");
-        body.stringMatcher("event", "^(CREATED|UPDATED|DELETED)$", "CREATED");
+        body.stringType("messageUuid");
 
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("Content-Type", "application/json");
-        metadata.put("kafka_topic", "products");
+        body.stringType("sender", "order-service-group");
+        body.integerType("opDate", 1232312312);
+        body.stringType("userContext", null);
+        body.stringType("orderId", "order-service-group");
 
-        return builder.expectsToReceive("a product created event").withMetadata(metadata).withContent(body).toPact();
+        body.object("event")
+                .numberType("numberOfItemsSold", 42)
+                .stringType("stockId", "sadas-1232sd-2362d-23321")
+                .stringType("eventType", "OP_START")
+                .closeObject();
+        body.object("sender")
+                .stringType("entityId", "sadas-1232sd-2362d-23321")
+                .numberType("version", 1)
+                .closeObject();
+        body.object("context")
+                .stringType("opId", "sadas-1232sd-2362d-23321")
+                .stringType("parentOpId", null)
+                .stringType("commandContext", "ProcessOrderCommandHandler")
+                .numberType("commandTimeout", 10000)
+                .numberType("startTime", 123123152)
+                .closeObject();
+
+
+
+        return builder
+                .expectsToReceive("a user created message")
+                .withContent(body)
+                .toPact();
     }
 
     @Test
     @PactTestFor(pactMethod = "createPact")
     void test(List<Message> messages) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-       // System.out.println("Message received -> " + messages.get(0).toString());
-        Stock stock = mapper.readValue(messages.get(0).toString(), Stock.class);
-        ReserveStockEvent reserveStockEvent= ReserveStockEvent.builder()
-                .numberOfItemsSold(1)
-                .stockId("1")
-                .build();
-        assertDoesNotThrow(() -> {
-            listener.execute(reserveStockEvent);
-        });
+        messageConsumer.consumeStringMessage(messages.get(0).contentsAsString());
     }
+
 }
