@@ -21,19 +21,21 @@ public class CreateStockMessageConsumer {
         this.objectMapper = objectMapper;
     }
 
-    public void consumeStringMessage(String messageString) throws IOException {
+    public StockCreatedEvent consumeStringMessage(String messageString) throws IOException {
         StockCreatedEvent message =
                 objectMapper.readValue(messageString, StockCreatedEvent.class);
 
         Validator validator =
                 Validation.buildDefaultValidatorFactory().getValidator();
 
-        Set<ConstraintViolation<StockCreatedEvent>> violations =
-                validator.validate(message);
-
+        Set<ConstraintViolation<StockCreatedEvent>> violations = validator.validate(message);
         if(!violations.isEmpty()){
             throw new ConstraintViolationException(violations);
         }
-        // pass message into business use case
+
+
+
+
+        return message;
     }
 }

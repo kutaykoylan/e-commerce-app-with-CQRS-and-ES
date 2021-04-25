@@ -10,10 +10,15 @@ import au.com.dius.pact.core.model.annotations.PactFolder;
 import au.com.dius.pact.core.model.messaging.Message;
 import au.com.dius.pact.core.model.messaging.MessagePact;
 import com.example.stockservice.event.handler.ReserveStockEventHandler;
+import com.example.stockservice.event.model.published.StockCreatedEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.json.*;
 
 import java.util.List;
 
@@ -30,31 +35,41 @@ public class CreateStockPactTest {
     ReserveStockEventHandler listener;
 
     @Pact(consumer = "pactflow-create-stock-kafka")
-    MessagePact createPact(MessagePactBuilder builder) {
+    MessagePact createStockValidMessage(MessagePactBuilder builder) {
         PactDslJsonBody body = new PactDslJsonBody();
 
+        body.stringType("stockName", "utoy");
+        body.numberType("remainingStock", 100);
+        body.stringType("eventType", "OP_SINGLE");
 
-        body.stringType("sender", "stock-service-group");
-        body.integerType("opDate", 1232312312);
-        body.stringType("userContext", null);
 
-        body.object("event")
-                .stringType("stockName", "utoy")
-                .numberType("remainingStock", 100)
-                .stringType("eventType", "OP_SINGLE")
-                .closeObject();
-        body.object("sender")
-                .stringType("entityId", "ea83fffe-cebd-4858-83f8-f6285fbc1100")
-                .numberType("version", 0)
-                .closeObject();
-        body.object("context")
-                .stringType("opId", "e50e4146-45b6-4265-88b1-fb13fa0a6e4d")
-                .stringType("parentOpId", null)
-                .stringType("commandContext", "CreateStockCommandHandler")
-                .numberType("commandTimeout", 10000)
-                .numberType("startTime", 123123152)
-                .closeObject();
+        return builder
+                .expectsToReceive("a user created message")
+                .withContent(body)
+                .toPact();
+    }
 
+    @Pact(consumer = "pactflow-create-stock-kafka")
+    MessagePact createStockInvalidMessage(MessagePactBuilder builder) {
+        PactDslJsonBody body = new PactDslJsonBody();
+
+        body.stringType("stockName1", "utoy");
+        body.numberType("remainingStock", 100);
+        body.stringType("eventType", "OP_SINGLE");
+
+
+        return builder
+                .expectsToReceive("a user created message")
+                .withContent(body)
+                .toPact();
+    }
+
+    @Pact(consumer = "pactflow-create-stock-kafka")
+    MessagePact createStockWithoutStockName(MessagePactBuilder builder) {
+        PactDslJsonBody body = new PactDslJsonBody();
+
+        body.numberType("remainingStock", 100);
+        body.stringType("eventType", "OP_SINGLE");
 
 
         return builder
@@ -64,8 +79,38 @@ public class CreateStockPactTest {
     }
 
     @Test
-    @PactTestFor(pactMethod = "createPact")
-    void test(List<Message> messages) throws Exception {
-        createStockMessageConsumer.consumeStringMessage(messages.get(0).contentsAsString());
+    @PactTestFor(pactMethod = "createStockValidMessage")
+    void createStockValidAttributesShouldConsume(List<Message> messages) throws Exception {
+        try{
+            String jsonStringMessage =  messages.get(0).contentsAsString();
+            StockCreatedEvent stockCreatedEvent = createStockMessageConsumer.consumeStringMessage(jsonStringMessage);
+            JSONObject jsonMessage = new JSONObject(jsonStringMessage);
+            assertEquals(stockCreatedEvent.getStockName(), jsonMessage.getString("stockName"), "stockName parameter is not equal between message and event object");
+            assertEquals(stockCreatedEvent.getRemainingStock(), jsonMessage.getLong("remainingStock"), "remainingStock parameter is not equal between message and event object");
+        }catch (Exception exp){
+            fail("invalid kafka message for create stock event");
+        }
     }
+
+    @Test
+    @PactTestFor(pactMethod = "createStockInvalidMessage")
+    void createStockInvalidAttributesShouldNotConsume(List<Message> messages) throws Exception {
+        try{
+            createStockMessageConsumer.consumeStringMessage(messages.get(0).contentsAsString());
+            fail("invalid kafka message for create stock event");
+        }catch (Exception exp){
+        }
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "createStockWithoutStockName")
+    void createStockNullStockNameShouldNotConsume(List<Message> messages) throws Exception {
+        try{
+            createStockMessageConsumer.consumeStringMessage(messages.get(0).contentsAsString());
+            fail("null stock name for create stock event");
+        }catch (Exception exp){
+        }
+    }
+
+
 }
