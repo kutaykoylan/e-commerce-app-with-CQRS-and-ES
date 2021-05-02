@@ -4,7 +4,7 @@ This project is forked to test effects of CQRS design pattern for testing of mic
 
 ## :flashlight: The Project without CQRS design pattern and ES
 
-- [e-commerce-app(https://github.com/kutaykoylan/ecommerce-app)
+- [e-commerce-app](https://github.com/kutaykoylan/ecommerce-app)
 
 ## :star: Extra Dependencies
 
