@@ -26,4 +26,16 @@ public class StockReservedEvent extends PublishedEvent {
 
     private EventType eventType = EventType.EVENT;
 
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public long getNumberOfItemsSold() {
+        return numberOfItemsSold;
+    }
+
+    @Override
+    public EventType getEventType() {
+        return eventType;
+    }
 }

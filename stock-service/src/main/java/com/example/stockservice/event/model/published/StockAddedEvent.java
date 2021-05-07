@@ -2,7 +2,11 @@ package com.example.stockservice.event.model.published;
 
 import com.kloia.eventapis.common.EventType;
 import com.kloia.eventapis.common.PublishedEvent;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Value;
 
 import javax.validation.constraints.NotNull;
 
