@@ -16,11 +16,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 import org.json.*;
 
+import javax.validation.ConstraintViolationException;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @PactFolder("../pact-message-consumer/target/pacts")
 @ExtendWith(PactConsumerTestExt.class)
@@ -98,21 +99,20 @@ public class SuccessPaymentPactTest {
     @Test
     @PactTestFor(pactMethod = "successPaymentInvalidMessage")
     void successPaymentInvalidAttributesShouldNotConsume(List<Message> messages) throws Exception {
-        try{
-            paymentSucceededMessageConsumer.consumeStringMessage(messages.get(0).contentsAsString());
-            fail("invalid kafka message for success payment event");
-        }catch (Exception exp){
-        }
+        assertThrows(ConstraintViolationException.class,
+                ()->{
+                    paymentSucceededMessageConsumer.consumeStringMessage(messages.get(0).contentsAsString());
+        });
+
     }
 
     @Test
     @PactTestFor(pactMethod = "successPaymentWithoutOrderId")
     void successPaymentNullStockIdShouldNotConsume(List<Message> messages) throws Exception {
-        try{
-            paymentSucceededMessageConsumer.consumeStringMessage(messages.get(0).contentsAsString());
-            fail("null payment name for success payment event");
-        }catch (Exception exp){
-        }
+        assertThrows(ConstraintViolationException.class,
+                ()->{
+                    paymentSucceededMessageConsumer.consumeStringMessage(messages.get(0).contentsAsString());
+        });
     }
 
 

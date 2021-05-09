@@ -1,6 +1,7 @@
 package com.example.stockservice;
 
 import com.example.stockservice.event.model.published.StockAddedEvent;
+import com.example.stockservice.event.model.published.StockReservedEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
@@ -24,13 +25,22 @@ public class AddStockMessageConsumer {
         StockAddedEvent message =
                 objectMapper.readValue(messageString, StockAddedEvent.class);
 
+        System.out.println(messageString);
+        System.out.println(message.toString());
+        System.out.println(message.getAddedStock());
+
+
         Validator validator =
                 Validation.buildDefaultValidatorFactory().getValidator();
 
         Set<ConstraintViolation<StockAddedEvent>> violations = validator.validate(message);
-        if (!violations.isEmpty()) {
+
+        if(!violations.isEmpty()){
             throw new ConstraintViolationException(violations);
         }
+
+
+
 
         return message;
     }

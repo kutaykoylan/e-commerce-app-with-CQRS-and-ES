@@ -16,11 +16,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 import org.json.*;
 
+import javax.validation.ConstraintViolationException;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @PactFolder("../pact-message-consumer/target/pacts")
 @ExtendWith(PactConsumerTestExt.class)
@@ -93,21 +94,21 @@ public class ReservedStockPactTest {
     @Test
     @PactTestFor(pactMethod = "reservedStockWithoutOrderIdStockInvalidMessage")
     void reservedStockInvalidAttributesShouldNotConsume(List<Message> messages) throws Exception {
-        try{
-            stockReservedMessageConsumer.consumeStringMessage(messages.get(0).contentsAsString());
-            fail("invalid kafka message for released stock event");
-        }catch (Exception exp){
-        }
+
+        assertThrows(ConstraintViolationException.class,
+                ()->{
+                    stockReservedMessageConsumer.consumeStringMessage(messages.get(0).contentsAsString());
+        });
+
     }
 
     @Test
     @PactTestFor(pactMethod = "reservedStockWithoutOrderId")
     void reservedhStockNullOrderIdShouldNotConsume(List<Message> messages) throws Exception {
-        try{
-            stockReservedMessageConsumer.consumeStringMessage(messages.get(0).contentsAsString());
-            fail("null order id for released stock event");
-        }catch (Exception exp){
-        }
+        assertThrows(ConstraintViolationException.class,
+                ()->{
+                    stockReservedMessageConsumer.consumeStringMessage(messages.get(0).contentsAsString());
+        });
     }
 
 

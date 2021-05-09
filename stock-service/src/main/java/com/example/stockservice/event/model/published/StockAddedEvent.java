@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Value;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 @Data
@@ -15,8 +16,11 @@ import javax.validation.constraints.NotNull;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class StockAddedEvent extends PublishedEvent {
+
     @NotNull
+    @Min(1)
     private long addedStock;
+
     @NotNull
     private EventType eventType = EventType.OP_SINGLE;
 
@@ -24,6 +28,7 @@ public class StockAddedEvent extends PublishedEvent {
         return addedStock;
     }
 
+    @NotNull
     @Override
     public EventType getEventType() {
         return eventType;
