@@ -25,10 +25,6 @@ public class AddStockMessageConsumer {
         StockAddedEvent message =
                 objectMapper.readValue(messageString, StockAddedEvent.class);
 
-        System.out.println(messageString);
-        System.out.println(message.toString());
-        System.out.println(message.getAddedStock());
-
 
         Validator validator =
                 Validation.buildDefaultValidatorFactory().getValidator();
